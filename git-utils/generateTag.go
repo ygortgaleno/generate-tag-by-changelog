@@ -1,9 +1,6 @@
 package gitUtils
 
 import (
-	"fmt"
-	"os"
-
 	semver "github.com/blang/semver/v4"
 )
 
@@ -18,39 +15,61 @@ const (
 )
 
 const (
-	Beta             ReleaseType = "beta"
 	Alpha            ReleaseType = "alpha"
+	Beta             ReleaseType = "beta"
 	ReleaseCandidate ReleaseType = "rc"
 	Production       ReleaseType = "production"
 )
 
-func GenerateTag(currentTag *string, releaseType *ReleaseType, semanticVersionType *SemanticVersionType) string {
+func makeSemanticVersion(currentTag *string) (version semver.Version) {
 	version, err := semver.Make(*currentTag)
 	if err != nil {
-		fmt.Println("Error in load tag into semantic version:", err)
-		os.Exit(1)
+		panic(err)
 	}
 
-	if *semanticVersionType == Major {
-		version.IncrementMajor()
-	} else if *semanticVersionType == Minor {
-		version.IncrementMinor()
-	} else if *semanticVersionType == Patch {
-		version.IncrementPatch()
-	}
+	return
+}
 
-	if *releaseType == Production {
+func incrementVersion(version *semver.Version, semanticVersionType *SemanticVersionType) {
+	switch *semanticVersionType {
+	case Major:
+		err := version.IncrementMajor()
+		if err != nil {
+			panic(err)
+		}
+	case Minor:
+		err := version.IncrementMinor()
+		if err != nil {
+			panic(err)
+		}
+	case Patch:
+		err := version.IncrementPatch()
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
+func setSemanticVersionReleaseType(version *semver.Version, releaseType *ReleaseType) {
+	switch *releaseType {
+	case Production:
 		version.Pre = make([]semver.PRVersion, 0)
-	} else {
+	case Alpha, Beta, ReleaseCandidate:
 		version.Pre = make([]semver.PRVersion, 1)
+
 		prVersion, err := semver.NewPRVersion(string(*releaseType))
 		if err != nil {
-			fmt.Println("Error on create pre release version:", err)
-			os.Exit(1)
+			panic(err)
 		}
 
 		version.Pre[0] = prVersion
 	}
+}
+
+func GenerateTag(currentTag *string, releaseType *ReleaseType, semanticVersionType *SemanticVersionType) string {
+	version := makeSemanticVersion(currentTag)
+	incrementVersion(&version, semanticVersionType)
+	setSemanticVersionReleaseType(&version, releaseType)
 
 	return version.String()
 }

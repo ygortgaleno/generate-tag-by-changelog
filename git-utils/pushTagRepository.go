@@ -8,9 +8,13 @@ import (
 )
 
 func PushTagRepository(repository *git.Repository, tag *string) {
-	repository.Push(&git.PushOptions{
+	err := repository.Push(&git.PushOptions{
 		RemoteName: "origin",
 		Progress:   os.Stdout,
 		RefSpecs:   []config.RefSpec{config.RefSpec("refs/tags/*:refs/tags/*")},
 	})
+
+	if err != nil {
+		panic(err)
+	}
 }
