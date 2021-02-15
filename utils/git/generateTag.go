@@ -1,4 +1,4 @@
-package gitUtils
+package utils
 
 import (
 	semver "github.com/blang/semver/v4"

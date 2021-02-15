@@ -1,4 +1,4 @@
-package gitUtils
+package utils
 
 import (
 	"os"
